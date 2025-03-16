@@ -8,7 +8,14 @@
 if [ ! -f /var/run/inst_basic_soft_sd.lock ]; then
     # First run: Update & Upgrade
     apt update && apt upgrade -y
+
+    # Create a lock file to indicate the script has been run
     touch /var/run/inst_basic_soft_sd.lock
+
+    # Schedule the script to run again after reboot
+    echo "@reboot root curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | bash" | sudo tee /etc/cron.d/rerun_inst_basic_soft_sd
+
+    # Reboot the system
     reboot
 fi
 
@@ -68,8 +75,9 @@ sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg  https://azlux.fr/rep
 sudo apt update
 sudo apt install log2ram -y
 
-# Clean up the lock file
+# Clean up the lock file and cron job
 rm -f /var/run/inst_basic_soft_sd.lock
+rm -f /etc/cron.d/rerun_inst_basic_soft_sd
 
 # Final Reboot
 sudo reboot
