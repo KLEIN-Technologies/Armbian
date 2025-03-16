@@ -17,7 +17,7 @@ if [ ! -f "$LOCK_FILE" ]; then
 
     # Schedule the script to run again after reboot
     echo "Scheduling script to run after reboot..."
-    (crontab -l 2>/dev/null; echo "@reboot curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | bash") | crontab -
+    echo "@reboot curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | bash" | sudo tee /etc/cron.d/rerun_inst_basic_soft_sd > /dev/null
 
     # Reboot the system
     echo "Rebooting the system..."
@@ -89,7 +89,7 @@ sudo apt install log2ram -y
 # Clean up the lock file and cron job
 echo "Cleaning up..."
 rm -f "$LOCK_FILE"
-crontab -l | grep -v "@reboot curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | bash" | crontab -
+sudo rm -f /etc/cron.d/rerun_inst_basic_soft_sd
 
 # Final Reboot
 echo "Installation complete. Rebooting the system..."
