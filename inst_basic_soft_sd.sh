@@ -5,23 +5,25 @@
 ###-------------------------------------------------------------------------###
 
 MARKER_FILE="/tmp/first_run_completed"
+SCRIPT_PATH="/root/inst_basic_soft_sd.sh"
 
-# If the script was already run once, remove marker and continue installation
-if [ -f "$MARKER_FILE" ]; then
-    echo "Resuming installation after reboot..."
-    rm -f "$MARKER_FILE"  # Remove marker
-else
+# Check if the script is running for the first time
+if [ ! -f "$MARKER_FILE" ]; then
     echo "First run: Updating system and scheduling reboot..."
     touch "$MARKER_FILE"
     
-    # Update & Upgrade
+    # Save a local copy of the script for rerunning after reboot
+    curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh -o "$SCRIPT_PATH"
+    chmod +x "$SCRIPT_PATH"
+
+    # Schedule the script to run again after reboot using cron
+    echo "@reboot root /bin/bash $SCRIPT_PATH" > /etc/cron.d/auto_rerun
+    chmod 644 /etc/cron.d/auto_rerun
+
+    # Perform update & upgrade
     apt update && apt upgrade -y
-
-    # Schedule the script to rerun itself after reboot
-    chmod +x "$0"
-    echo "@reboot root $0" > /etc/cron.d/auto_rerun
-
-    # Reboot
+    
+    # Reboot to continue installation
     reboot
     exit 0
 fi
@@ -45,7 +47,7 @@ chmod a+r /etc/apt/keyrings/docker.asc
 
 echo \  
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \  
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \  
+  $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | \  
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update -y
 
