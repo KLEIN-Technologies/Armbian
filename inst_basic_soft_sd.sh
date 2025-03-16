@@ -4,37 +4,42 @@
 #                              One Click Install                              #
 ###-------------------------------------------------------------------------###
 
-# Define a persistent lock file location
+# Define lock file and script path
 LOCK_FILE="/root/inst_basic_soft_sd.lock"
-
-# Log file for debugging
+SCRIPT_PATH="/root/inst_basic_soft_sd.sh"
+SERVICE_FILE="/etc/systemd/system/armbian-install.service"
 LOG_FILE="/root/inst_basic_soft_sd.log"
 
-# Redirect all output to the log file
+# Redirect all output to the log file for debugging
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "Script started at $(date)"
 
-# Define the systemd service file
-SERVICE_FILE="/etc/systemd/system/armbian-install.service"
+# Ensure script persists across reboots
+if [ ! -f "$SCRIPT_PATH" ]; then
+    echo "Downloading the script to ensure persistence..."
+    curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh -o "$SCRIPT_PATH"
+    chmod +x "$SCRIPT_PATH"
+fi
 
 # Check if the script is running for the first time
 if [ ! -f "$LOCK_FILE" ]; then
-    echo "First run: Updating and upgrading the system..."
+    echo "First run detected. Updating system and scheduling reboot..."
     apt update && apt upgrade -y
 
-    # Create a persistent lock file to indicate the script has been run
+    # Create a lock file to track first run
     touch "$LOCK_FILE"
 
-    # Create a systemd service to rerun after reboot
-    echo "Creating systemd service to ensure rerun after reboot..."
+    # Create a systemd service to rerun the script after reboot
+    echo "Setting up systemd service to rerun script after reboot..."
     cat <<EOF > "$SERVICE_FILE"
 [Unit]
 Description=Armbian Auto-Install Script
-After=network.target
+After=network-online.target
 
 [Service]
-ExecStart=/bin/bash /root/inst_basic_soft_sd.sh
+ExecStart=/bin/bash $SCRIPT_PATH
+Restart=always
 Type=simple
 RemainAfterExit=yes
 
@@ -42,11 +47,11 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 
-    # Reload systemd, enable the service, and reboot
+    # Reload systemd, enable service, and reboot
     systemctl daemon-reload
     systemctl enable armbian-install.service
 
-    echo "Rebooting the system to continue installation..."
+    echo "Rebooting now to continue installation..."
     reboot
     exit 0
 fi
