@@ -103,14 +103,6 @@ curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/se
 yes | sh setup-repos.sh
 apt-get install -y webmin --install-recommends
 
-#--------------------------------   Log2RAM   --------------------------------#
-
-echo "Installing Log2RAM..."
-echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | sudo tee /etc/apt/sources.list.d/azlux.list
-sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
-sudo apt update
-sudo apt install -y log2ram
-
 # Cleanup: Remove systemd service so it doesn’t run on every boot
 echo "Cleaning up systemd service..."
 systemctl disable armbian-install.service
