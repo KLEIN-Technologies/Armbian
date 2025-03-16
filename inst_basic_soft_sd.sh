@@ -7,6 +7,14 @@
 # Define a persistent lock file location
 LOCK_FILE="/root/inst_basic_soft_sd.lock"
 
+# Log file for debugging
+LOG_FILE="/root/inst_basic_soft_sd.log"
+
+# Redirect all output to the log file
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "Script started at $(date)"
+
 # Check if the script is being run for the first time or after a reboot
 if [ ! -f "$LOCK_FILE" ]; then
     echo "First run: Updating and upgrading the system..."
@@ -17,11 +25,13 @@ if [ ! -f "$LOCK_FILE" ]; then
 
     # Schedule the script to run again after reboot
     echo "Scheduling script to run after reboot..."
-    echo "@reboot curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | bash" | sudo tee /etc/cron.d/rerun_inst_basic_soft_sd > /dev/null
+    (crontab -l 2>/dev/null; echo "@reboot sleep 60 && /usr/bin/curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | /bin/bash >> $LOG_FILE 2>&1") | crontab -
 
     # Reboot the system
     echo "Rebooting the system..."
     reboot
+else
+    echo "Lock file found. Skipping initial update and upgrade."
 fi
 
 #---------------------------   Minimum Packages   ----------------------------#
@@ -89,7 +99,7 @@ sudo apt install log2ram -y
 # Clean up the lock file and cron job
 echo "Cleaning up..."
 rm -f "$LOCK_FILE"
-sudo rm -f /etc/cron.d/rerun_inst_basic_soft_sd
+crontab -l | grep -v "@reboot curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh | bash" | crontab -
 
 # Final Reboot
 echo "Installation complete. Rebooting the system..."
