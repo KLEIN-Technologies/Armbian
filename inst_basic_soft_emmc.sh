@@ -111,6 +111,8 @@ sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo
 sudo apt update
 sudo apt install -y log2ram
 
+#-------------------------------   Script END   ------------------------------#
+
 # Cleanup: Remove systemd service so it doesn’t run on every boot
 echo "Cleaning up systemd service..."
 systemctl disable armbian-install.service
