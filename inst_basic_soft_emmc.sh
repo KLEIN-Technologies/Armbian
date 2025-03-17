@@ -5,10 +5,10 @@
 ###-------------------------------------------------------------------------###
 
 # Define lock file and script path
-LOCK_FILE="/root/inst_basic_soft_sd.lock"
-SCRIPT_PATH="/root/inst_basic_soft_sd.sh"
+LOCK_FILE="/root/inst_basic_soft_emmc.lock"
+SCRIPT_PATH="/root/inst_basic_soft_emmc.sh"
 SERVICE_FILE="/etc/systemd/system/armbian-install.service"
-LOG_FILE="/root/inst_basic_soft_sd.log"
+LOG_FILE="/root/inst_basic_soft_emmc.log"
 
 # Redirect all output to the log file for debugging
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -18,7 +18,7 @@ echo "Script started at $(date)"
 # Ensure script persists across reboots
 if [ ! -f "$SCRIPT_PATH" ]; then
     echo "Downloading the script to ensure persistence..."
-    curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_sd.sh -o "$SCRIPT_PATH"
+    curl -fsSL https://raw.githubusercontent.com/KLEIN-Technologies/Armbian/main/inst_basic_soft_emmc.sh -o "$SCRIPT_PATH"
     chmod +x "$SCRIPT_PATH"
 fi
 
