@@ -100,11 +100,12 @@ wget -O - https://github.com/OpenMediaVault-Plugin-Developers/installScript/raw/
 
 apt install -y openmediavault-mergerfs \
                openmediavault-flashmemory \
-               openmediavault-anacron \
+               openmediavault-backup \
                openmediavault-cputemp \
-               openmediavault-omvextrasorg \
+               openmediavault-borgbackup \
                openmediavault-sharerootfs \
-               openmediavault-timeshift
+               openmediavault-timeshift \
+               openmediavault-snmp
 
 # Cleanup: Remove systemd service so it doesn’t run on every boot
 echo "Cleaning up systemd service..."
