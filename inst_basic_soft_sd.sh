@@ -87,6 +87,9 @@ sudo apt-get update -y
 # Install Docker Engine
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# Create Network Range
+sudo docker network create --driver=bridge --subnet=10.10.10.0/24 klein-technologies
+
 # Install Portainer-CE
 echo "Installing Portainer..."
 sudo docker run -d -p 9002:9000 --name portainer --restart=always \
@@ -98,10 +101,10 @@ ln -s /var/lib/docker/volumes/ /99_Volumes
 
 #--------------------------------   Webmin   ---------------------------------#
 
-echo "Installing Webmin..."
-curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
-yes | sh setup-repos.sh
-apt-get install -y webmin --install-recommends
+# echo "Installing Webmin..."
+# curl -o setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
+# yes | sh setup-repos.sh
+# apt-get install -y webmin --install-recommends
 
 #--------------------------------   Log2RAM   --------------------------------#
 
