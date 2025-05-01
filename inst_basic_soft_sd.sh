@@ -94,7 +94,7 @@ sudo docker network create --driver=bridge --subnet=10.10.10.0/24 klein-technolo
 echo "Installing Portainer..."
 sudo docker run -d -p 9002:9000 --name portainer --restart=always \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v sys_portainer:/data portainer/portainer-ce:latest
+  -v sys_portainer:/data portainer/portainer-ce:2.27.1
 
 # Symbolic Link (Docker Volumes)
 ln -s /var/lib/docker/volumes/ /99_Volumes
