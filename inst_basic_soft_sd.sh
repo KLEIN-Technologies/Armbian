@@ -59,7 +59,7 @@ fi
 #---------------------------   Minimum Packages   ----------------------------#
 
 echo "Installing minimum required packages..."
-apt install -y sudo htop hdparm curl mc wget unrar samba wsdd2
+apt install -y sudo htop hdparm curl mc wget unrar
 
 # Start Web Service Dynamic Discovery
 systemctl enable --now wsdd2
