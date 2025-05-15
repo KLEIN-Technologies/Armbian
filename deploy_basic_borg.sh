@@ -32,18 +32,16 @@ fi
 
 # Add SSH login loop to .bashrc if lock exists
 if [ -f "$LOCK_FILE" ]; then
-    # Remove any old block
     sed -i "/$MARKER_START/,/$MARKER_END/d" "$BASHRC_FILE"
-    # Add new block without clearing screen
     cat <<EOF >> "$BASHRC_FILE"
 $MARKER_START
 if [ -f "/root/deploy_basic_borg.lock" ]; then
   while true; do
-    echo -e "\e[33m⚠️  Install script is still active. Do not interrupt.\e[0m"
-    echo -e "\e[34m📜 Script Path: /root/deploy_basic_borg.sh\e[0m"
-    echo -e "\e[36m📦 Log: /root/deploy_basic_borg.log\e[0m"
+    echo -e "\n\033[1;33m========== INSTALL STATUS ==========\033[0m"
+    echo -e "⚠️  Install script is still active. Do not interrupt."
+    echo -e "\033[1;34m📜 Script Path: /root/deploy_basic_borg.sh\033[0m"
+    echo -e "\033[1;36m📦 Log: /root/deploy_basic_borg.log\033[0m"
     echo -e "⏳ Next update in 5 seconds. Press Ctrl+C to stop message."
-    echo ""
     sleep 5
   done
 fi
@@ -91,24 +89,24 @@ mkdir -p /00_SMB /98_DevOps
 #------------------------   Docker Setup   ------------------------#
 echo "🐳 Installing Docker..."
 
-sudo apt-get install -y ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+apt-get install -y ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
 
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-sudo apt-get update -y
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get update -y
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 echo "🌐 Creating Docker network..."
-sudo docker network create --driver=bridge --subnet=10.10.10.0/24 klein-technologies
+docker network create --driver=bridge --subnet=10.10.10.0/24 klein-technologies
 
 echo "📦 Installing Portainer..."
-sudo docker run -d -p 9002:9000 --name portainer --restart=always \
+docker run -d -p 9002:9000 --name portainer --restart=always \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v system_portainer:/data portainer/portainer-ce:lts
 
@@ -116,10 +114,10 @@ ln -s /var/lib/docker/volumes/ /99_Volumes
 
 #------------------------   Log2RAM   ------------------------#
 echo "🧠 Installing Log2RAM..."
-echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | sudo tee /etc/apt/sources.list.d/azlux.list
-sudo wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
-sudo apt update
-sudo apt install -y log2ram
+echo "deb [signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian/ bookworm main" | tee /etc/apt/sources.list.d/azlux.list
+wget -O /usr/share/keyrings/azlux-archive-keyring.gpg https://azlux.fr/repo.gpg
+apt update
+apt install -y log2ram
 
 #------------------------   Backup Script   ------------------------#
 echo "📝 Creating backup script..."
