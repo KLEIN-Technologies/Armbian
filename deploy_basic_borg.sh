@@ -9,6 +9,7 @@ SCRIPT_PATH="/root/deploy_basic_borg.sh"
 SERVICE_FILE="/etc/systemd/system/armbian-install.service"
 LOG_FILE="/root/deploy_basic_borg.log"
 BASHRC_FILE="/root/.bashrc"
+PROFILE_FILE="/root/.profile"
 MARKER_START="# >>> INSTALL LOOP START >>>"
 MARKER_END="# <<< INSTALL LOOP END <<<"
 
@@ -23,20 +24,26 @@ if [ ! -f "$SCRIPT_PATH" ]; then
     chmod +x "$SCRIPT_PATH"
 fi
 
+# Ensure .bashrc runs on SSH login
+if ! grep -q '.bashrc' "$PROFILE_FILE"; then
+    echo "🔧 Linking .bashrc in .profile..."
+    echo -e '\n# Load .bashrc on login\nif [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then\n  . "$HOME/.bashrc"\nfi' >> "$PROFILE_FILE"
+fi
+
 # Add SSH login loop to .bashrc if lock exists
 if [ -f "$LOCK_FILE" ]; then
-    # Clean old block if present
+    # Remove any old block
     sed -i "/$MARKER_START/,/$MARKER_END/d" "$BASHRC_FILE"
-    # Add new block
+    # Add new block without clearing screen
     cat <<EOF >> "$BASHRC_FILE"
 $MARKER_START
 if [ -f "/root/deploy_basic_borg.lock" ]; then
   while true; do
-    clear
     echo -e "\e[33m⚠️  Install script is still active. Do not interrupt.\e[0m"
     echo -e "\e[34m📜 Script Path: /root/deploy_basic_borg.sh\e[0m"
     echo -e "\e[36m📦 Log: /root/deploy_basic_borg.log\e[0m"
-    echo -e "\n⏳ Next update in 5 seconds. Press Ctrl+C to stop message.\n"
+    echo -e "⏳ Next update in 5 seconds. Press Ctrl+C to stop message."
+    echo ""
     sleep 5
   done
 fi
