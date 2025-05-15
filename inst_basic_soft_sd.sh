@@ -62,7 +62,7 @@ echo "Installing minimum required packages..."
 apt install -y sudo htop hdparm curl mc wget unrar
 
 # Start Web Service Dynamic Discovery
-systemctl enable --now wsdd2
+# systemctl enable --now wsdd2
 
 mkdir -p /00_SMB
 mkdir -p /98_DevOps
