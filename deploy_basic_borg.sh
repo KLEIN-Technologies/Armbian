@@ -28,10 +28,21 @@ if [ ! -f "$LOCK_FILE" ]; then
 else
     cat << 'EOF' > "$LOGIN_NOTICE_FILE"
 #!/bin/bash
+
+case $- in
+    *i*) ;;
+    *) return ;;
+esac
+
 if [ -f "/root/deploy_basic_borg.lock" ]; then
-    echo -e "\e[33m⚠️  Install script is still active. Do not interrupt.\e[0m"
-    echo -e "\e[34m📜 Script Path: /root/deploy_basic_borg.sh\e[0m"
-    echo -e "\e[36m📦 Log: /root/deploy_basic_borg.log\e[0m"
+    while true; do
+        clear
+        echo -e "\e[33m⚠️  Install script is still active. Do not interrupt.\e[0m"
+        echo -e "\e[34m📜 Script Path: /root/deploy_basic_borg.sh\e[0m"
+        echo -e "\e[36m📦 Log: /root/deploy_basic_borg.log\e[0m"
+        echo -e "\n⏳ Next update in 5 seconds. Press Ctrl+C to stop message.\n"
+        sleep 5
+    done
 fi
 EOF
     chmod +x "$LOGIN_NOTICE_FILE"
