@@ -8,7 +8,9 @@ LOCK_FILE="/root/deploy_basic_borg.lock"
 SCRIPT_PATH="/root/deploy_basic_borg.sh"
 SERVICE_FILE="/etc/systemd/system/armbian-install.service"
 LOG_FILE="/root/deploy_basic_borg.log"
-LOGIN_NOTICE_FILE="/etc/profile.d/deploy_notice.sh"
+BASHRC_FILE="/root/.bashrc"
+MARKER_START="# >>> INSTALL LOOP START >>>"
+MARKER_END="# <<< INSTALL LOOP END <<<"
 
 # Redirect all output to the log file
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -21,31 +23,25 @@ if [ ! -f "$SCRIPT_PATH" ]; then
     chmod +x "$SCRIPT_PATH"
 fi
 
-# Create SSH login message notifier if lock file exists
-if [ ! -f "$LOCK_FILE" ]; then
-    # Remove login notice if script has completed
-    rm -f "$LOGIN_NOTICE_FILE"
-else
-    cat << 'EOF' > "$LOGIN_NOTICE_FILE"
-#!/bin/bash
-
-case $- in
-    *i*) ;;
-    *) return ;;
-esac
-
+# Add SSH login loop to .bashrc if lock exists
+if [ -f "$LOCK_FILE" ]; then
+    # Clean old block if present
+    sed -i "/$MARKER_START/,/$MARKER_END/d" "$BASHRC_FILE"
+    # Add new block
+    cat <<EOF >> "$BASHRC_FILE"
+$MARKER_START
 if [ -f "/root/deploy_basic_borg.lock" ]; then
-    while true; do
-        clear
-        echo -e "\e[33m⚠️  Install script is still active. Do not interrupt.\e[0m"
-        echo -e "\e[34m📜 Script Path: /root/deploy_basic_borg.sh\e[0m"
-        echo -e "\e[36m📦 Log: /root/deploy_basic_borg.log\e[0m"
-        echo -e "\n⏳ Next update in 5 seconds. Press Ctrl+C to stop message.\n"
-        sleep 5
-    done
+  while true; do
+    clear
+    echo -e "\e[33m⚠️  Install script is still active. Do not interrupt.\e[0m"
+    echo -e "\e[34m📜 Script Path: /root/deploy_basic_borg.sh\e[0m"
+    echo -e "\e[36m📦 Log: /root/deploy_basic_borg.log\e[0m"
+    echo -e "\n⏳ Next update in 5 seconds. Press Ctrl+C to stop message.\n"
+    sleep 5
+  done
 fi
+$MARKER_END
 EOF
-    chmod +x "$LOGIN_NOTICE_FILE"
 fi
 
 # First-run logic
@@ -231,8 +227,8 @@ echo "🧹 Disabling install service..."
 systemctl disable armbian-install.service
 rm -f "$SERVICE_FILE"
 
-echo "🧽 Removing SSH login notice..."
-rm -f "$LOGIN_NOTICE_FILE"
+echo "🧽 Removing SSH login message from .bashrc..."
+sed -i "/$MARKER_START/,/$MARKER_END/d" "$BASHRC_FILE"
 
 #------------------------   Final Reboot   ------------------------#
 echo "✅ Installation complete. Rebooting system..."
