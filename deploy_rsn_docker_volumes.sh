@@ -35,7 +35,7 @@ SOURCE_DIRS=(
 
 # Exclusions - modify these to match your needs
 FOLDER_EXCLUDES=(
-    "*./esphome"
+    "esphome/"
 )
 
 FILE_EXCLUDES=(
