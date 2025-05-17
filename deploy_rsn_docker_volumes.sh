@@ -35,19 +35,13 @@ SOURCE_DIRS=(
 
 # Exclusions - modify these to match your needs
 FOLDER_EXCLUDES=(
-    "*/cache"
-    "*/tmp"
-    "*/logs"
-    "*/node_modules"
-    "*/esphome"
+    "./esphome"
 )
 
 FILE_EXCLUDES=(
     "home-assistant_v2.db-wal"
     "home-assistant_v2.db-shm"
     "home-assistant_v2.db"
-    "*.log"
-    "*.tmp"
 )
 
 DEST_BASE="/00_SMB/Docker_Volumes"
