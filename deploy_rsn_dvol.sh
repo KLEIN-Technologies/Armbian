@@ -19,10 +19,10 @@ cat << 'EOF' > "$SCRIPT_PATH"
 
 # ================================================================
 # 🔄 Docker Volumes Backup Script with Telegram & Retention
-# 📦 Timestamped Snapshots: docker_vol - YYYY-MM-DD - HHh:MMm
+# 📦 Timestamped Snapshots: docker_vol_YYYY_MM_DD_hrHH_minMM
 # 📁 Destination: /00_SMB/Docker_Volumes
-# 🕒 Runs Every 3 Hours (Suggested via cron)
-# 🔔 Sends Telegram notifications with summary and backup duration
+# 🕒 Runs Every 3 Hours (via cron)
+# 🔔 Sends Telegram notifications
 # ================================================================
 
 # === CONFIGURATION ===
@@ -54,7 +54,6 @@ FOLDER_EXCLUDES=(
     '.esphome'
 )
 FILE_EXCLUDES=(
-    # '*.log'
     'home-assistant_v2.db'
     'home-assistant_v2.db-shm'
     'home-assistant_v2.db-wal'
@@ -65,13 +64,13 @@ send_telegram() {
     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
         -d chat_id="${TELEGRAM_CHAT_ID}" \
         -d text="$message" \
-        -d parse_mode="Markdown"
+        -d parse_mode="HTML"
 }
 
 prune_old_backups() {
     local FOLDER=$1
     local KEEP=$2
-    local PATTERN="docker_vol - *"
+    local PATTERN="docker_vol_*"
     local REMOVED=()
 
     COUNT=$(find "$FOLDER" -maxdepth 1 -type d -name "$PATTERN" | wc -l)
@@ -89,7 +88,7 @@ prune_old_backups() {
 rotate_snapshots() {
     local TYPE=$1
     local LIMIT=$2
-    local MATCH_PATTERN="docker_vol - *"
+    local MATCH_PATTERN="docker_vol_*"
     local PREFIX_DIR="${DEST_BASE}/${TYPE}"
 
     mkdir -p "$PREFIX_DIR"
@@ -135,7 +134,7 @@ for DIR in "${SOURCE_DIRS[@]}"; do
     done
 
     if ! rsync -a --delete "${EXCLUDE_ARGS[@]}" "$DIR/" "$DEST_PATH/"; then
-        send_telegram "❌ *Backup Failed for* \`$DIR\`\n📅 $TIMESTAMP"
+        send_telegram "❌ <b>Backup Failed</b> for <code>$DIR</code>\n📅 $TIMESTAMP"
         echo "❌ Backup failed for $DIR" | tee -a "$LOG_FILE"
     fi
 done
@@ -156,20 +155,19 @@ MIN=$((DURATION / 60))
 SEC=$((DURATION % 60))
 
 DELETED_SUMMARY=""
-[ -n "$REMOVED_HOURLY" ] && DELETED_SUMMARY+="🕒 *Hourly Deleted:* \n$(echo "$REMOVED_HOURLY" | tr ' ' '\n')\n"
-[ -n "$REMOVED_DAILY" ] && DELETED_SUMMARY+="📆 *Daily Deleted:* \n$(echo "$REMOVED_DAILY" | tr ' ' '\n')\n"
-[ -n "$REMOVED_WEEKLY" ] && DELETED_SUMMARY+="🗓️ *Weekly Deleted:* \n$(echo "$REMOVED_WEEKLY" | tr ' ' '\n')\n"
-[ -n "$REMOVED_MONTHLY" ] && DELETED_SUMMARY+="📅 *Monthly Deleted:* \n$(echo "$REMOVED_MONTHLY" | tr ' ' '\n')\n"
+[ -n "$REMOVED_HOURLY" ] && DELETED_SUMMARY+="🕒 <b>Hourly Deleted:</b>\n$(echo "$REMOVED_HOURLY" | tr ' ' '\n')\n"
+[ -n "$REMOVED_DAILY" ] && DELETED_SUMMARY+="📆 <b>Daily Deleted:</b>\n$(echo "$REMOVED_DAILY" | tr ' ' '\n')\n"
+[ -n "$REMOVED_WEEKLY" ] && DELETED_SUMMARY+="🗓️ <b>Weekly Deleted:</b>\n$(echo "$REMOVED_WEEKLY" | tr ' ' '\n')\n"
+[ -n "$REMOVED_MONTHLY" ] && DELETED_SUMMARY+="📅 <b>Monthly Deleted:</b>\n$(echo "$REMOVED_MONTHLY" | tr ' ' '\n')\n"
 [ -z "$DELETED_SUMMARY" ] && DELETED_SUMMARY="♻️ No old backups deleted."
 
-# send_telegram "✅ *Docker Volumes Backup Complete*\n📅 $TIMESTAMP\n📁 Saved to: \`$BACKUP_DEST\`\n🕒 Duration: ${MIN}m ${SEC}s\n\n${DELETED_SUMMARY}"
-MESSAGE="✅ *Docker Volumes Backup Complete*
+MESSAGE="✅ <b>Docker Volumes Backup Complete</b>
 📅 $(date +"%Y-%m-%d %H:%M")
 📁 Saved to: /Docker_Volumes
-📄 File: \`${BACKUP_NAME}\`
+📄 File: <code>${BACKUP_NAME}</code>
 🕒 Duration: ${MIN}m ${SEC}s
 
-${DELETED_SUMMARY:-♻️ No old backups deleted.}"
+${DELETED_SUMMARY}"
 
 send_telegram "$MESSAGE"
 
