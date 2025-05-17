@@ -28,9 +28,20 @@ cat > "$SCRIPT_PATH" << 'EOF'
 
 # === CONFIGURATION ===
 SOURCE_DIRS=(
-    "/var/lib/docker/volumes/iot_haos"
-    "/var/lib/docker/volumes/iot_esphome"
     "/var/lib/docker/volumes/lab_haos"
+    "/var/lib/docker/volumes/lab_esphome"
+    "/var/lib/docker/volumes/zero_haos"
+)
+
+# Exclusions - modify these to match your needs
+FOLDER_EXCLUDES=(
+    "./esphome"
+)
+
+FILE_EXCLUDES=(
+    "home-assistant_v2.db-wal"
+    "home-assistant_v2.db-shm"
+    "home-assistant_v2.db"
 )
 
 DEST_BASE="/00_SMB/Docker_Volumes"
@@ -43,10 +54,10 @@ BACKUP_DEST="${DEST_BASE}/${BACKUP_NAME}"
 HOSTNAME=$(hostname)
 
 # Retention policies
-HOURLY_LIMIT=24
-DAILY_LIMIT=7
-WEEKLY_LIMIT=4
-MONTHLY_LIMIT=3
+HOURLY_LIMIT=24    # Keep 24 hourly backups (1 day)
+DAILY_LIMIT=7      # Keep 7 daily backups
+WEEKLY_LIMIT=4     # Keep 4 weekly backups
+MONTHLY_LIMIT=3    # Keep 3 monthly backups
 
 # Telegram Config
 TELEGRAM_BOT_TOKEN="7890138907:AAGAGLdi5z7XnBWgVKYHYW1rs9KASCWDcKk"
@@ -80,6 +91,9 @@ prune_old_backups() {
     local KEEP=$2
     local REMOVED=()
 
+    # Skip if directory doesn't exist
+    [ ! -d "$FOLDER" ] && return
+
     COUNT=$(find "$FOLDER" -maxdepth 1 -type d -name "*" | wc -l)
     if (( COUNT > KEEP )); then
         while IFS= read -r OLD; do
@@ -91,9 +105,27 @@ prune_old_backups() {
     echo "${REMOVED[@]}"
 }
 
+generate_exclusion_args() {
+    local args=()
+    
+    for pattern in "${FOLDER_EXCLUDES[@]}"; do
+        args+=("--exclude=$pattern")
+    done
+    
+    for pattern in "${FILE_EXCLUDES[@]}"; do
+        args+=("--exclude=$pattern")
+    done
+    
+    echo "${args[@]}"
+}
+
 # === MAIN BACKUP ===
 {
     echo "🚀 Starting backup at $TIMESTAMP"
+    echo "📂 Source directories: ${SOURCE_DIRS[*]}"
+    echo "🚫 Exclusions:"
+    echo "   Folders: ${FOLDER_EXCLUDES[*]}"
+    echo "   Files: ${FILE_EXCLUDES[*]}"
     START_TIME=$(date +%s)
     mkdir -p "$BACKUP_DEST" "$LOG_DIR"
 
@@ -102,21 +134,23 @@ prune_old_backups() {
         echo "⚠️ Couldn't send startup notification" | tee -a "$LOG_FILE"
     fi
 
+    # Generate rsync exclusion arguments
+    EXCLUSION_ARGS=($(generate_exclusion_args))
+
     # Backup each volume
     for DIR in "${SOURCE_DIRS[@]}"; do
+        if [ ! -d "$DIR" ]; then
+            echo "❌ Source directory not found: $DIR" | tee -a "$LOG_FILE"
+            send_telegram "❌ Backup Failed: Directory not found - $DIR"
+            continue
+        fi
+
         NAME=$(basename "$DIR")
         DEST_PATH="$BACKUP_DEST/$NAME"
         echo "📦 Backing up $DIR ➡️ $DEST_PATH"
+        echo "🔍 Using exclusions: ${EXCLUSION_ARGS[*]}"
 
-        EXCLUDE_ARGS=()
-        for FOLDER in "${FOLDER_EXCLUDES[@]}"; do
-            EXCLUDE_ARGS+=("--exclude=$FOLDER")
-        done
-        for FILE in "${FILE_EXCLUDES[@]}"; do
-            EXCLUDE_ARGS+=("--exclude=$FILE")
-        done
-
-        if ! rsync -a --delete "${EXCLUDE_ARGS[@]}" "$DIR/" "$DEST_PATH/"; then
+        if ! rsync -avh --delete "${EXCLUSION_ARGS[@]}" "$DIR/" "$DEST_PATH/"; then
             send_telegram "❌ Backup Failed for $NAME\n📅 $TIMESTAMP"
             echo "❌ Backup failed for $DIR" | tee -a "$LOG_FILE"
             exit 1
@@ -124,6 +158,7 @@ prune_old_backups() {
     done
 
     # Retention management
+    echo "🧹 Cleaning up old backups..."
     REMOVED_HOURLY=$(prune_old_backups "$DEST_BASE" $HOURLY_LIMIT)
     REMOVED_DAILY=$(prune_old_backups "${DEST_BASE}/daily" $DAILY_LIMIT)
     REMOVED_WEEKLY=$(prune_old_backups "${DEST_BASE}/weekly" $WEEKLY_LIMIT)
