@@ -65,7 +65,7 @@ send_telegram() {
     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
         -d chat_id="${TELEGRAM_CHAT_ID}" \
         -d text="$message" \
-        -d parse_mode="Markdown"
+        -d parse_mode="MarkdownV2"
 }
 
 prune_old_backups() {
@@ -165,11 +165,12 @@ DELETED_SUMMARY=""
 # send_telegram "✅ *Docker Volumes Backup Complete*\n📅 $TIMESTAMP\n📁 Saved to: \`$BACKUP_DEST\`\n🕒 Duration: ${MIN}m ${SEC}s\n\n${DELETED_SUMMARY}"
 send_telegram "$(echo -e "✅ *Docker Volumes Backup Complete*
 📅 $TIMESTAMP
-📁 Saved to: /Docker_Volumes
-📄 File: \`$BACKUP_NAME\`
+📁 Saved to: /Docker\\_Volumes
+📄 File: \`docker\\_vol \\- ${TIMESTAMP// /\\ } \`
 🕒 Duration: ${MIN}m ${SEC}s
 
-${DELETED_SUMMARY}")"
+${DELETED_SUMMARY//-/\\-}
+")"
 
 
 echo "✅ [$TIMESTAMP] Backup cycle complete! Took ${MIN}m ${SEC}s" | tee -a "$LOG_FILE"
