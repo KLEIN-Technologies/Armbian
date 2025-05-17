@@ -19,7 +19,11 @@ cat > "$SCRIPT_PATH" << 'EOF'
 #!/bin/bash
 
 # ================================================================
-# 🔄 Docker Volumes Backup Script with Clean Telegram Formatting
+# 🔄 Multi-Folder Docker Volume Backup Script
+# 🕒 Hourly Backups with Version Retention & Pruning
+# 🗂️ Timestamped Backups (docker_vol - YYYY-MM-DD - HHh:MMm)
+# 📁 Destination: /00_SMB/Docker_Volumes
+# 📝 Logs: /00_SMB/Scripts/Logs/sal-rsn_docker_volumes.log
 # ================================================================
 
 # === CONFIGURATION ===
