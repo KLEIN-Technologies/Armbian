@@ -35,8 +35,8 @@ SOURCE_DIRS=(
 DEST_BASE="/00_SMB/Docker_Volumes"
 LOG_DIR="/00_SMB/Scripts/Logs"
 LOG_FILE="${LOG_DIR}/sal-rsn_docker_volumes.log"
-TIMESTAMP=$(date +"%Y_%m_%d_hr%H_min%M")
-BACKUP_NAME="docker_vol_${TIMESTAMP}"
+TIMESTAMP=$(date +"%Y-%m-%d - %Hh:%Mm")
+BACKUP_NAME="docker_vol - $TIMESTAMP"
 BACKUP_DEST="${DEST_BASE}/${BACKUP_NAME}"
 
 # Retention policies
