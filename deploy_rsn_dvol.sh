@@ -65,7 +65,7 @@ send_telegram() {
     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
         -d chat_id="${TELEGRAM_CHAT_ID}" \
         -d text="$message" \
-        -d parse_mode="MarkdownV2"
+        -d parse_mode="Markdown"
 }
 
 prune_old_backups() {
@@ -163,21 +163,15 @@ DELETED_SUMMARY=""
 [ -z "$DELETED_SUMMARY" ] && DELETED_SUMMARY="♻️ No old backups deleted."
 
 # send_telegram "✅ *Docker Volumes Backup Complete*\n📅 $TIMESTAMP\n📁 Saved to: \`$BACKUP_DEST\`\n🕒 Duration: ${MIN}m ${SEC}s\n\n${DELETED_SUMMARY}"
-ESCAPED_NAME=$(echo "$BACKUP_NAME" | sed -e 's/\([_*\[\]()~`>#+\-=|{}.!\\]\)/\\\1/g')
-ESCAPED_TIMESTAMP=$(echo "$TIMESTAMP" | sed -e 's/\([_*\[\]()~`>#+\-=|{}.!\\]\)/\\\1/g')
-ESCAPED_SUMMARY=$(echo "$DELETED_SUMMARY" | sed -e 's/\([_*\[\]()~`>#+\-=|{}.!\\]\)/\\\1/g')
-
 MESSAGE="✅ *Docker Volumes Backup Complete*
-📅 ${ESCAPED_TIMESTAMP}
-📁 Saved to: /Docker\\_Volumes
-📄 File: \`${ESCAPED_NAME}\`
+📅 $(date +"%Y-%m-%d %H:%M")
+📁 Saved to: /Docker_Volumes
+📄 File: \`${BACKUP_NAME}\`
 🕒 Duration: ${MIN}m ${SEC}s
 
-${ESCAPED_SUMMARY:-♻️ No old backups deleted.}"
+${DELETED_SUMMARY:-♻️ No old backups deleted.}"
 
 send_telegram "$MESSAGE"
-
-
 
 echo "✅ [$TIMESTAMP] Backup cycle complete! Took ${MIN}m ${SEC}s" | tee -a "$LOG_FILE"
 echo "----------------------------------------------------" >> "$LOG_FILE"
