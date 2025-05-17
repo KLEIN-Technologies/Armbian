@@ -15,7 +15,7 @@ CRON_JOB="0 */3 * * * ${SCRIPT_PATH}"
 mkdir -p "$SCRIPT_DIR"
 
 # Create the backup script
-cat > "$SCRIPT_PATH" << 'EOF'
+cat > "$SCRIPT_PATH" << 'INSTALLER_EOF'
 #!/bin/bash
 
 # ================================================================
@@ -35,13 +35,19 @@ SOURCE_DIRS=(
 
 # Exclusions - modify these to match your needs
 FOLDER_EXCLUDES=(
-    "./esphome"
+    "*/cache"
+    "*/tmp"
+    "*/logs"
+    "*/node_modules"
+    "*/esphome"
 )
 
 FILE_EXCLUDES=(
     "home-assistant_v2.db-wal"
     "home-assistant_v2.db-shm"
     "home-assistant_v2.db"
+    "*.log"
+    "*.tmp"
 )
 
 DEST_BASE="/00_SMB/Docker_Volumes"
@@ -197,7 +203,7 @@ ${DELETED_SUMMARY}
     echo "✅ Backup completed successfully in ${MIN}m ${SEC}s"
     echo "--------------------------------------------------"
 } >> "$LOG_FILE" 2>&1
-EOF
+INSTALLER_EOF
 
 # Make the script executable
 chmod +x "$SCRIPT_PATH"
