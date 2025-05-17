@@ -163,7 +163,7 @@ DELETED_SUMMARY=""
 [ -z "$DELETED_SUMMARY" ] && DELETED_SUMMARY="♻️ No old backups deleted."
 
 # send_telegram "✅ *Docker Volumes Backup Complete*\n📅 $TIMESTAMP\n📁 Saved to: \`$BACKUP_DEST\`\n🕒 Duration: ${MIN}m ${SEC}s\n\n${DELETED_SUMMARY}"
-send_telegram "$(cat <<EOF
+TELEGRAM_MESSAGE=$(cat <<EOF
 ✅ *Docker Volumes Backup Complete*
 📅 $TIMESTAMP
 📁 Saved to: /Docker_Volumes
@@ -172,7 +172,10 @@ send_telegram "$(cat <<EOF
 
 ${DELETED_SUMMARY}
 EOF
-)"
+)
+
+send_telegram "$TELEGRAM_MESSAGE"
+
 
 echo "✅ [$TIMESTAMP] Backup cycle complete! Took ${MIN}m ${SEC}s" | tee -a "$LOG_FILE"
 echo "----------------------------------------------------" >> "$LOG_FILE"
