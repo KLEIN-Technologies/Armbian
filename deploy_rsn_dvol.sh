@@ -171,7 +171,6 @@ send_telegram "$(cat <<EOF
 ✅ *Docker Volumes Backup Complete*
 📅 $TIMESTAMP
 📁 Saved to: \`/Docker_Volumes\`
-# 📄 File: \`$BACKUP_NAME\`
 🕒 Duration: ${MIN}m ${SEC}s
 
 ${DELETED_SUMMARY}
