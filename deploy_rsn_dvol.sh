@@ -122,24 +122,27 @@ START_TIME=$(date +%s)
 
 echo "🔁 [$TIMESTAMP] Starting backup..." | tee -a "$LOG_FILE"
 
+FAILED_DIRS=()
+
 for DIR in "${SOURCE_DIRS[@]}"; do
     NAME=$(basename "$DIR")
     DEST_PATH="$BACKUP_DEST/$NAME"
     echo "📦 Backing up $DIR ➡️ $DEST_PATH" | tee -a "$LOG_FILE"
 
     EXCLUDE_ARGS=()
-    for FOLDER in "${FOLDER_EXCLUDES[@]}"; do
-        EXCLUDE_ARGS+=("--exclude=$FOLDER")
-    done
-    for FILE in "${FILE_EXCLUDES[@]}"; do
-        EXCLUDE_ARGS+=("--exclude=$FILE")
+    for EX in "${FOLDER_EXCLUDES[@]}" "${FILE_EXCLUDES[@]}"; do
+        EXCLUDE_ARGS+=("--exclude=$EX")
     done
 
     if ! rsync -a --delete "${EXCLUDE_ARGS[@]}" "$DIR/" "$DEST_PATH/"; then
-        send_telegram "❌ *Backup Failed for* \`$DIR\`\n📅 $TIMESTAMP"
+        FAILED_DIRS+=("$DIR")
         echo "❌ Backup failed for $DIR" | tee -a "$LOG_FILE"
     fi
 done
+
+if [ ${#FAILED_DIRS[@]} -gt 0 ]; then
+    send_telegram "❌ *Backup Failed for:* \n\`\`\`\n${FAILED_DIRS[*]}\n\`\`\`\n📅 $TIMESTAMP"
+fi
 
 echo "✅ Backup saved to $BACKUP_DEST" | tee -a "$LOG_FILE"
 
@@ -167,26 +170,27 @@ DELETED_SUMMARY=""
 [ -z "$DELETED_SUMMARY" ] && DELETED_SUMMARY="♻️ No old backups deleted."
 
 # === SEND TELEGRAM REPORT ===
-send_telegram "$(cat <<EOF
+send_telegram "$(cat <<EOM
 ✅ *Docker Volumes Backup Complete*
 📅 $TIMESTAMP
 📁 Saved to: \`/Docker_Volumes\`
 🕒 Duration: ${MIN}m ${SEC}s
 
 ${DELETED_SUMMARY}
-EOF
+EOM
 )"
 
 echo "✅ [$TIMESTAMP] Backup cycle complete! Took ${MIN}m ${SEC}s" | tee -a "$LOG_FILE"
 echo "----------------------------------------------------" >> "$LOG_FILE"
-
+EOF
 
 # === Make Executable ===
 chmod +x "$SCRIPT_PATH"
+chmod 700 "$SCRIPT_PATH"
 
 # === Add Cron Job ===
-CRON_ENTRY="0 */3 * * * ${SCRIPT_PATH} # rsn_dvol_backup"
-( crontab -l 2>/dev/null | grep -v "# rsn_dvol_backup" ; echo "$CRON_ENTRY" ) | crontab -
+CRON_CMD="${SCRIPT_PATH} # rsn_dvol_backup"
+( crontab -l 2>/dev/null | grep -v -F "$CRON_CMD" ; echo "0 */3 * * * $CRON_CMD" ) | crontab -
 
 # === Log Deployment ===
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
