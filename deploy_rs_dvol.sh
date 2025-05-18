@@ -41,8 +41,8 @@ BACKUP_DEST="/00_SMB/Docker_Volumes"
 HOURLY_LIMIT=24
 COMPRESS_LEVEL=3
 
-TELEGRAM_TOKEN="7369801782:AAGltfab2_gIlP7l1aOFsxgXmalqUXz4FXw"
-TELEGRAM_CHAT_ID="8167593683"
+TELEGRAM_TOKEN="insert_token_here"
+TELEGRAM_CHAT_ID="insert_id_here"
 HOSTNAME=$(hostname)
 
 TELEGRAM_LOG="🚀 Starting Docker Volumes Backup...  
