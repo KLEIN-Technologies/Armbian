@@ -16,9 +16,9 @@ cat > "$SCRIPT_PATH" << 'EOL'
 # cronjobs.sh - Auto update and upgrade Armbian OS with Telegram notifications
 
 # Telegram bot configuration (replace with your actual values)
-TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
-TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
-TELEGRAM_API_URL="https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage"
+TELEGRAM_BOT_TOKEN="7369801782:AAGltfab2_gIlP7l1aOFsxgXmalqUXz4FXw"
+TELEGRAM_CHAT_ID="8167593683"
+TELEGRAM_API_URL="https://api.telegram.org/bot7369801782:AAGltfab2_gIlP7l1aOFsxgXmalqUXz4FXw/sendMessage"
 
 # Function to send Telegram notification
 send_telegram_notification() {
