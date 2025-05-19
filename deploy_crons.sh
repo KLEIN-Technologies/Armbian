@@ -80,6 +80,7 @@ seconds=$((duration % 60))
 MESSAGE+="
 
 🕒 Duration: ${minutes}m ${seconds}s
+
 ✅ All operations completed successfully"
 
 # Send the complete message
