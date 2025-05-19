@@ -24,6 +24,7 @@ cat > "$SCRIPT_PATH" <<'EOF'
 BACKUP_SOURCES=(
     "/var/lib/docker/volumes/iot_haos"
     "/var/lib/docker/volumes/lab_haos"
+    "/var/lib/docker/volumes/zero_haos"
     "/var/lib/docker/volumes/iot_esphome"
 )
 
