@@ -59,10 +59,10 @@ fi
 #---------------------------   Minimum Packages   ----------------------------#
 
 echo "Installing minimum required packages..."
-apt install -y sudo htop hdparm curl mc wget unrar
+apt install -y sudo htop hdparm curl mc wget unrar samba
 
-# Start Web Service Dynamic Discovery
-# systemctl enable --now wsdd2
+Start Web Service Dynamic Discovery
+systemctl enable --now wsdd2
 
 mkdir -p /00_SMB
 mkdir -p /98_DevOps
