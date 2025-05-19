@@ -16,9 +16,9 @@ cat > "$SCRIPT_PATH" << 'EOL'
 # cronjobs.sh - Auto update and upgrade Armbian OS with Telegram notifications
 
 # Telegram bot configuration (replace with your actual values)
-TELEGRAM_BOT_TOKEN="7369801782:AAGltfab2_gIlP7l1aOFsxgXmalqUXz4FXw"
-TELEGRAM_CHAT_ID="8167593683"
-TELEGRAM_API_URL="https://api.telegram.org/bot7369801782:AAGltfab2_gIlP7l1aOFsxgXmalqUXz4FXw/sendMessage"
+TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
+TELEGRAM_API_URL="https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage"
 
 # Function to send Telegram notification
 send_telegram_notification() {
@@ -32,26 +32,22 @@ send_telegram_notification() {
 # Get current time in desired format
 current_time=$(date "+%Hh:%Mmin")
 
-# Initialize message
-MESSAGE="🚀 *System Update Report* 🚀
-🖥️ *Host:* $(hostname)  
-⏰ *Time:* $current_time  
-"
+# Start notification
+send_telegram_notification "🚀 Starting update and upgrade ...
+
+🖥️ $(hostname)  
+⏰ $current_time  
+
+✅ Update started successfully"
 
 # Start timer
 start_time=$(date +%s)
 
 # Update and upgrade commands
-MESSAGE+="
-🔹 *Update Process Started*..."
-
 if apt-get update -y; then
-    MESSAGE+=" ✅"
+    send_telegram_notification "✅ Update completed successfully"
     
     # Perform upgrade
-    MESSAGE+="
-🔹 *Upgrade Process Started*..."
-    
     if apt-get upgrade -y; then
         # Calculate duration
         end_time=$(date +%s)
@@ -59,27 +55,16 @@ if apt-get update -y; then
         minutes=$((duration / 60))
         seconds=$((duration % 60))
         
-        MESSAGE+=" ✅
-        
-🕒 *Duration:* ${minutes}m ${seconds}s
-✅ *All operations completed successfully*"
+        send_telegram_notification "✅ Upgrade completed successfully  
+🕒 Duration: ${minutes}m ${seconds}s"
     else
-        MESSAGE+=" ❌
-        
-❌ *Upgrade failed*"
-        send_telegram_notification "$MESSAGE"
+        send_telegram_notification "❌ Upgrade failed"
         exit 1
     fi
 else
-    MESSAGE+=" ❌
-    
-❌ *Update failed*"
-    send_telegram_notification "$MESSAGE"
+    send_telegram_notification "❌ Update failed"
     exit 1
 fi
-
-# Send the complete message
-send_telegram_notification "$MESSAGE"
 
 exit 0
 EOL
